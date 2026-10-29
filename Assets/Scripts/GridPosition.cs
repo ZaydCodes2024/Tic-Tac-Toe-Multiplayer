@@ -10,7 +10,7 @@ public class GridPosition : MonoBehaviour, IPointerDownHandler
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            Debug.Log("Click!" + x + "," + y);
+            GameManager.Instance.ClickedOnGridPosition(x,y);
         }
     }
 }

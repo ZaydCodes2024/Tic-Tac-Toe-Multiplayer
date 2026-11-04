@@ -15,10 +15,11 @@ public class GameManager : NetworkBehaviour
 
     public enum PlayerType
     {
-        CROSS, CIRCLE, NONE
+        NONE, CROSS, CIRCLE
     }
 
     private PlayerType localPlayerType;
+    private PlayerType currentLocalPlayerType;
     private void Awake()
     {
         if (Instance != null)
@@ -29,14 +30,30 @@ public class GameManager : NetworkBehaviour
         }
         Instance = this;
     }
-    public void ClickedOnGridPosition(int x, int y)
+    [Rpc(SendTo.Server)]
+    public void ClickedOnGridPositionRpc(int x, int y, PlayerType playerType)
     {
         Debug.Log("Clicked on world position " + x + "," + y);
+
+        if (playerType != currentLocalPlayerType)   return;
+
         OnClickedWorldPosition?.Invoke(this, new OnClickedWorldPositionEventArgs {
            x = x,
            y = y,
-           playerType = localPlayerType
+           playerType = playerType
         });
+
+        switch (currentLocalPlayerType)
+        {
+            default:
+            case PlayerType.CROSS:
+                currentLocalPlayerType = PlayerType.CIRCLE;
+                break;
+
+            case PlayerType.CIRCLE:
+                currentLocalPlayerType = PlayerType.CROSS;
+                break;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -49,5 +66,15 @@ public class GameManager : NetworkBehaviour
         {
             localPlayerType = PlayerType.CIRCLE;
         }
+
+        if(IsServer)
+        {
+            currentLocalPlayerType = PlayerType.CROSS;
+        }
+    }
+
+    public PlayerType GetLocalPlayerType()
+    {
+        return localPlayerType;
     }
 }

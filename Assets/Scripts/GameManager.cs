@@ -5,6 +5,8 @@ using UnityEngine;
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance {get; private set;}
+    public event EventHandler OnGameStarted;
+    public event EventHandler OnPlayerTypeChanged;
     public event EventHandler<OnClickedWorldPositionEventArgs> OnClickedWorldPosition;
     public class OnClickedWorldPositionEventArgs: EventArgs
     {
@@ -19,7 +21,7 @@ public class GameManager : NetworkBehaviour
     }
 
     private PlayerType localPlayerType;
-    private PlayerType currentLocalPlayerType;
+    private NetworkVariable<PlayerType> currentLocalPlayerType = new NetworkVariable<PlayerType>();
     private void Awake()
     {
         if (Instance != null)
@@ -30,12 +32,19 @@ public class GameManager : NetworkBehaviour
         }
         Instance = this;
     }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnGameStartedRpc()
+    {
+        OnGameStarted?.Invoke(this, EventArgs.Empty);
+    }
+
     [Rpc(SendTo.Server)]
     public void ClickedOnGridPositionRpc(int x, int y, PlayerType playerType)
     {
         Debug.Log("Clicked on world position " + x + "," + y);
 
-        if (playerType != currentLocalPlayerType)   return;
+        if (playerType != currentLocalPlayerType.Value)   return;
 
         OnClickedWorldPosition?.Invoke(this, new OnClickedWorldPositionEventArgs {
            x = x,
@@ -43,17 +52,18 @@ public class GameManager : NetworkBehaviour
            playerType = playerType
         });
 
-        switch (currentLocalPlayerType)
+        switch (currentLocalPlayerType.Value)
         {
             default:
             case PlayerType.CROSS:
-                currentLocalPlayerType = PlayerType.CIRCLE;
+                currentLocalPlayerType.Value = PlayerType.CIRCLE;
                 break;
 
             case PlayerType.CIRCLE:
-                currentLocalPlayerType = PlayerType.CROSS;
+                currentLocalPlayerType.Value = PlayerType.CROSS;
                 break;
         }
+
     }
 
     public override void OnNetworkSpawn()
@@ -69,10 +79,29 @@ public class GameManager : NetworkBehaviour
 
         if(IsServer)
         {
-            currentLocalPlayerType = PlayerType.CROSS;
+            currentLocalPlayerType.Value = PlayerType.CROSS;
+            NetworkManager.Singleton.OnClientConnectedCallback += NetworkManager_OnClientConnectedCallback;
+        }
+
+        currentLocalPlayerType.OnValueChanged += (PlayerType oldPlayerType, PlayerType newPlayerType) =>
+        {
+            OnPlayerTypeChanged?.Invoke(this, EventArgs.Empty);
+        };
+    }
+
+    private void NetworkManager_OnClientConnectedCallback(ulong obj)
+    {
+        if (NetworkManager.Singleton.ConnectedClientsList.Count == 2)
+        {
+            currentLocalPlayerType.Value = PlayerType.CROSS;
+            TriggerOnGameStartedRpc();
         }
     }
 
+    public PlayerType GetCurrentPlayerType()
+    {
+        return currentLocalPlayerType.Value;
+    }
     public PlayerType GetLocalPlayerType()
     {
         return localPlayerType;

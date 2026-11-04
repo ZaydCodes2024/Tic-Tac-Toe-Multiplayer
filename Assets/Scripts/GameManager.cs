@@ -1,7 +1,8 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance {get; private set;}
     public event EventHandler<OnClickedWorldPositionEventArgs> OnClickedWorldPosition;
@@ -9,7 +10,15 @@ public class GameManager : MonoBehaviour
     {
         public int x;
         public int y;
+        public PlayerType playerType;
     }
+
+    public enum PlayerType
+    {
+        CROSS, CIRCLE, NONE
+    }
+
+    private PlayerType localPlayerType;
     private void Awake()
     {
         if (Instance != null)
@@ -25,7 +34,20 @@ public class GameManager : MonoBehaviour
         Debug.Log("Clicked on world position " + x + "," + y);
         OnClickedWorldPosition?.Invoke(this, new OnClickedWorldPositionEventArgs {
            x = x,
-           y = y
+           y = y,
+           playerType = localPlayerType
         });
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if(NetworkManager.Singleton.LocalClientId == 0)
+        {
+            localPlayerType = PlayerType.CROSS;
+        }
+        else
+        {
+            localPlayerType = PlayerType.CIRCLE;
+        }
     }
 }

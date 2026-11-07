@@ -9,6 +9,7 @@ public class GameManager : NetworkBehaviour
     public event EventHandler OnGameStarted;
     public event EventHandler<OnGameWinEventArgs> OnGameWin;
     public event EventHandler OnRematch;
+    public event EventHandler OnGameTie;
     public class OnGameWinEventArgs : EventArgs
     {
         public Line line;
@@ -172,9 +173,33 @@ public class GameManager : NetworkBehaviour
                 currentLocalPlayerType.Value = PlayerType.NONE;
 
                 TriggerOnGameWinRpc(i, playerTypeArray[line.centerGridPosition.x, line.centerGridPosition.y]);
-                break;
+                return;
             }
         }
+
+        bool hasTie = true;
+        for (int x = 0; x < playerTypeArray.GetLength(0); x++)
+        {
+            for (int y = 0; y < playerTypeArray.GetLength(1); y++)
+            {
+                if (playerTypeArray[x,y] == PlayerType.NONE)
+                {
+                    hasTie = false;
+                    break;
+                }
+            }
+        }
+
+        if (hasTie)
+        {
+             TriggerOnGameTiedRpc();
+        }
+    }
+    
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnGameTiedRpc()
+    {
+        OnGameTie?.Invoke(this, EventArgs.Empty);
     }
 
     [Rpc(SendTo.ClientsAndHost)]

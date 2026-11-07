@@ -22,6 +22,7 @@ public class GameManager : NetworkBehaviour
 
     private PlayerType localPlayerType;
     private NetworkVariable<PlayerType> currentLocalPlayerType = new NetworkVariable<PlayerType>();
+    private PlayerType[,] playerTypeArray;
     private void Awake()
     {
         if (Instance != null)
@@ -30,7 +31,10 @@ public class GameManager : NetworkBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+
+        playerTypeArray = new PlayerType[3,3];
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -45,6 +49,14 @@ public class GameManager : NetworkBehaviour
         Debug.Log("Clicked on world position " + x + "," + y);
 
         if (playerType != currentLocalPlayerType.Value)   return;
+
+        if (playerTypeArray[x,y] != PlayerType.NONE)
+        {
+            // Already Occupied
+            return;
+        }
+
+        playerTypeArray[x,y] = playerType;
 
         OnClickedWorldPosition?.Invoke(this, new OnClickedWorldPositionEventArgs {
            x = x,

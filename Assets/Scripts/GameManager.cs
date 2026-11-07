@@ -8,7 +8,7 @@ public class GameManager : NetworkBehaviour
     public static GameManager Instance {get; private set;}
     public event EventHandler OnGameStarted;
     public event EventHandler<OnGameWinEventArgs> OnGameWin;
-
+    public event EventHandler OnRematch;
     public class OnGameWinEventArgs : EventArgs
     {
         public Line line;
@@ -246,6 +246,26 @@ public class GameManager : NetworkBehaviour
         TestWinner();
     }
 
+    [Rpc(SendTo.Server)]
+    public void RematchRpc()
+    {
+        for (int x = 0; x < playerTypeArray.GetLength(0); x++)
+        {
+            for (int y = 0; y < playerTypeArray.GetLength(1); y++)
+            {
+                playerTypeArray[x,y] = PlayerType.NONE;
+            }
+        }
+
+        currentLocalPlayerType.Value = PlayerType.CROSS;
+        TriggerOnRematchRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnRematchRpc()
+    {
+        OnRematch?.Invoke(this, EventArgs.Empty);
+    }
     public override void OnNetworkSpawn()
     {
         if(NetworkManager.Singleton.LocalClientId == 0)

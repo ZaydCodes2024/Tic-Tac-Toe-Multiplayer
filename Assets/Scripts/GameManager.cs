@@ -11,6 +11,7 @@ public class GameManager : NetworkBehaviour
     public event EventHandler OnRematch;
     public event EventHandler OnGameTie;
     public event EventHandler OnScoreChange;
+    public event EventHandler OnPlacedObject;
     public class OnGameWinEventArgs : EventArgs
     {
         public Line line;
@@ -254,7 +255,8 @@ public class GameManager : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void ClickedOnGridPositionRpc(int x, int y, PlayerType playerType)
     {
-        Debug.Log("Clicked on world position " + x + "," + y);
+
+        
 
         if (playerType != currentLocalPlayerType.Value)   return;
 
@@ -265,6 +267,8 @@ public class GameManager : NetworkBehaviour
         }
 
         playerTypeArray[x,y] = playerType;
+
+        TriggerOnPlacedObjectRpc();
 
         OnClickedWorldPosition?.Invoke(this, new OnClickedWorldPositionEventArgs {
            x = x,
@@ -287,6 +291,11 @@ public class GameManager : NetworkBehaviour
         TestWinner();
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnPlacedObjectRpc()
+    {
+        OnPlacedObject?.Invoke(this, EventArgs.Empty);
+    }
     [Rpc(SendTo.Server)]
     public void RematchRpc()
     {

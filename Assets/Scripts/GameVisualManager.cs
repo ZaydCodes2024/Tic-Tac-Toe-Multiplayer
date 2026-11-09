@@ -27,7 +27,7 @@ public class GameVisualManager : NetworkBehaviour
     {
         if (!NetworkManager.Singleton.IsServer)     return;
 
-        
+
         foreach (GameObject visualGameobject in visualGameobjectList)
         {
             Destroy(visualGameobject);
@@ -70,14 +70,13 @@ public class GameVisualManager : NetworkBehaviour
 
     private void GameManager_OnClickedWorldPosition(object sender, GameManager.OnClickedWorldPositionEventArgs e)
     {
-        Debug.Log("GameManager_OnClickedWorldPosition");
         SpawnObjectRpc(e.x, e.y, e.playerType);
     }
 
     [Rpc(SendTo.Server)]
     private void SpawnObjectRpc(int x, int y, GameManager.PlayerType playerType)
     {
-        Debug.Log("SpawnObject");
+        
         Transform prefab;
 
         switch(playerType)

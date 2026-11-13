@@ -318,7 +318,7 @@ public class GameManager : NetworkBehaviour
     }
     public override void OnNetworkSpawn()
     {
-        if(NetworkManager.Singleton.LocalClientId == 0)
+        if (IsHost)
         {
             localPlayerType = PlayerType.CROSS;
         }

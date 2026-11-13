@@ -1,5 +1,7 @@
 # Tic-Tac-Toe Multiplayer
 
+TicTacToeMultiplayer - https://zayd-game-dev.itch.io/tic-tac-toe-multiplayer
+
 A real-time online multiplayer Tic-Tac-Toe game built with **Unity 6** and **Netcode for GameObjects**, using **Unity Gaming Services (UGS)** — Authentication, Lobbies, and Relay — so two players can find each other in a lobby and play together over the internet without any port forwarding or dedicated servers.
 
 ## Features
@@ -38,18 +40,18 @@ A real-time online multiplayer Tic-Tac-Toe game built with **Unity 6** and **Net
 ## How It Works
 
 ```
-┌──────────────┐   1. Authenticate    ┌───────────────────┐
+┌──────────────┐   1. Authenticate    ┌─────────────────────┐
 │   Player A   │ ───────────────────► │ Unity Authentication│
-└──────┬───────┘                      └───────────────────┘
+└──────┬───────┘                      └─────────────────────┘
        │ 2. Create Lobby / Join / Quick Join
        ▼
-┌──────────────────┐   3. Lobby full (2 players) → allocate Relay
+┌───────────────────┐   3. Lobby full (2 players) → allocate Relay
 │  Unity Lobby API  │ ─────────────────────────────────────────────┐
-└──────┬───────────┘                                             │
-       │ 4. Relay join code written to lobby data                 │
-       ▼                                                         ▼
+└──────┬────────────┘                                              │
+       │ 4. Relay join code written to lobby data                  │
+       ▼                                                           ▼
 ┌──────────────┐   5. Client reads join code   ┌─────────────────────┐
-│   Player B   │ ────────────────────────────► │   Unity Relay (DTLS) │
+│   Player B   │ ────────────────────────────► │   Unity Relay (DTLS)│
 └──────┬───────┘                               └─────────────────────┘
        │            6. Host + Client connect through Relay, both load GameScene
        └────────────────────────────────────────► 🎮 Game starts
